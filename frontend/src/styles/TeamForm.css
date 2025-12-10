@@ -1,0 +1,56 @@
+.players-section {
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 2px solid #f0f0f0;
+}
+
+.players-section h3 {
+  margin-bottom: 20px;
+  color: #333;
+}
+
+.player-form {
+  background: #f9f9f9;
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 15px;
+  position: relative;
+}
+
+.player-form .form-group {
+  margin-bottom: 15px;
+}
+
+.btn-remove-player {
+  width: 100%;
+  padding: 8px;
+  background: #f44336;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: 500;
+  margin-top: 10px;
+  transition: opacity 0.3s;
+}
+
+.btn-remove-player:hover {
+  opacity: 0.8;
+}
+
+.btn-add-player {
+  width: 100%;
+  padding: 12px;
+  background: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: 600;
+  margin-bottom: 20px;
+  transition: opacity 0.3s;
+}
+
+.btn-add-player:hover {
+  opacity: 0.8;
+}

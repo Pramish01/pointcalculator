@@ -100,15 +100,6 @@ const Login = () => {
         <div className="curved-shape"></div>
         <div className="curved-shape2"></div>
 
-        {/* Center Square (Visible only) */}
-        <div
-          className="center-square"
-          onMouseEnter={handleMouseEnter}
-          onMouseLeave={handleMouseLeave}
-        >
-          <i className="fa-solid fa-gift"></i>
-        </div>
-
         {/* Login Form */}
         <div className="form-box Login">
           <h2 className="animation" style={{'--D': 0, '--S': 21}}>Login</h2>

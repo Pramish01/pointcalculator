@@ -331,44 +331,6 @@
     transition-delay: 1.2s;
 }
 
-/* Center Square Button */
-.center-square {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 80px;
-    height: 80px;
-    background: rgba(253, 240, 76, 0.15);
-    border: 3px solid #fdf04c;
-    border-radius: 15px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 100;
-    animation: squarePulse 2s infinite;
-    transition: all 0.3s ease;
-}
-
-.center-square:hover {
-    background: rgba(253, 240, 76, 0.3);
-    transform: translate(-50%, -50%) scale(1.15) rotate(5deg);
-}
-
-.center-square i {
-    font-size: 35px;
-    color: #fdf04c;
-}
-
-@keyframes squarePulse {
-    0%, 100% {
-        box-shadow: 0 0 15px rgba(253, 240, 76, 0.5);
-    }
-    50% {
-        box-shadow: 0 0 35px rgba(253, 240, 76, 0.9);
-    }
-}
-
 /* Error message styling */
 .error-message {
     background: rgba(255, 0, 0, 0.2);

@@ -1,60 +1,257 @@
-import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import '../styles/Login.css';
+import '../styles/LoginSlide.css';
 
 const Login = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [isSignup, setIsSignup] = useState(false);
+  const [loginData, setLoginData] = useState({ username: '', password: '' });
+  const [signupData, setSignupData] = useState({ username: '', email: '', password: '' });
   const [error, setError] = useState('');
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, register } = useAuth();
+  const containerRef = useRef(null);
+  const cursorRef = useRef(null);
+  const cursorDotRef = useRef(null);
 
-  const handleSubmit = async (e) => {
+  // Custom cursor effect
+  useEffect(() => {
+    let mouseX = 0, mouseY = 0;
+    let cursorX = 0, cursorY = 0;
+
+    const handleMouseMove = (e) => {
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+
+      if (cursorDotRef.current) {
+        cursorDotRef.current.style.left = mouseX + 'px';
+        cursorDotRef.current.style.top = mouseY + 'px';
+      }
+    };
+
+    const animateCursor = () => {
+      cursorX += (mouseX - cursorX) * 0.15;
+      cursorY += (mouseY - cursorY) * 0.15;
+
+      if (cursorRef.current) {
+        cursorRef.current.style.left = cursorX + 'px';
+        cursorRef.current.style.top = cursorY + 'px';
+      }
+
+      requestAnimationFrame(animateCursor);
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    animateCursor();
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+    };
+  }, []);
+
+  const handleLoginSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
     try {
-      await login(email, password);
+      await login(loginData.username, loginData.password);
       navigate('/');
     } catch (err) {
-      setError(err.response?.data?.message || 'An error occurred');
+      setError(err.response?.data?.message || 'Login failed');
+    }
+  };
+
+  const handleSignupSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+
+    try {
+      await register(signupData.username, signupData.email, signupData.password);
+      navigate('/');
+    } catch (err) {
+      setError(err.response?.data?.message || 'Signup failed');
+    }
+  };
+
+  const toggleForm = (signup) => {
+    setIsSignup(signup);
+    setError('');
+  };
+
+  const handleMouseEnter = (e) => {
+    if (cursorRef.current) {
+      cursorRef.current.classList.add('hover');
+    }
+  };
+
+  const handleMouseLeave = (e) => {
+    if (cursorRef.current) {
+      cursorRef.current.classList.remove('hover');
     }
   };
 
   return (
-    <div className="login-container">
-      <div className="login-box">
-        <h1>Welcome Back</h1>
-        {error && <div className="error-message">{error}</div>}
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label>Email</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-          </div>
-          <div className="form-group">
-            <label>Password</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-          </div>
-          <div className="forgot-password">
-            <Link to="/forgot-password">Forgot Password?</Link>
-          </div>
-          <button type="submit" className="btn-signin">
-            Sign In
-          </button>
-        </form>
-        <div className="signup-link">
-          Don't have an account? <Link to="/signup">Sign Up</Link>
+    <div className="login-page">
+      {/* Custom Cursor Elements */}
+      <div ref={cursorRef} className="custom-cursor"></div>
+      <div ref={cursorDotRef} className="custom-cursor-dot"></div>
+
+      <div ref={containerRef} className={`container ${isSignup ? 'active' : ''}`}>
+        <div className="curved-shape"></div>
+        <div className="curved-shape2"></div>
+
+        {/* Center Square (Visible only) */}
+        <div
+          className="center-square"
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
+        >
+          <i className="fa-solid fa-gift"></i>
+        </div>
+
+        {/* Login Form */}
+        <div className="form-box Login">
+          <h2 className="animation" style={{'--D': 0, '--S': 21}}>Login</h2>
+          {error && !isSignup && <div className="error-message animation" style={{'--D': 1, '--S': 22}}>{error}</div>}
+          <form onSubmit={handleLoginSubmit}>
+            <div className="input-box animation" style={{'--D': 1, '--S': 22}}>
+              <input
+                type="text"
+                value={loginData.username}
+                onChange={(e) => setLoginData({...loginData, username: e.target.value})}
+                onMouseEnter={handleMouseEnter}
+                onMouseLeave={handleMouseLeave}
+                required
+              />
+              <label>Username</label>
+              <i className="fa-solid fa-user"></i>
+            </div>
+
+            <div className="input-box animation" style={{'--D': 2, '--S': 23}}>
+              <input
+                type="password"
+                value={loginData.password}
+                onChange={(e) => setLoginData({...loginData, password: e.target.value})}
+                onMouseEnter={handleMouseEnter}
+                onMouseLeave={handleMouseLeave}
+                required
+              />
+              <label>Password</label>
+              <i className="fa-solid fa-lock"></i>
+            </div>
+
+            <div className="input-box animation" style={{'--D': 3, '--S': 24}}>
+              <button
+                className="btn"
+                type="submit"
+                onMouseEnter={handleMouseEnter}
+                onMouseLeave={handleMouseLeave}
+              >
+                Login
+              </button>
+            </div>
+
+            <div className="regi-link animation" style={{'--D': 4, '--S': 25}}>
+              <p>
+                Don't have an account? {' '}
+                <a
+                  href="#"
+                  onClick={(e) => { e.preventDefault(); toggleForm(true); }}
+                  onMouseEnter={handleMouseEnter}
+                  onMouseLeave={handleMouseLeave}
+                >
+                  Sign Up
+                </a>
+              </p>
+            </div>
+          </form>
+        </div>
+
+        {/* Login Info Content */}
+        <div className="info-content Login">
+          <h2 className="animation" style={{'--D': 0, '--S': 20}}>WELCOME BACK!</h2>
+          <p className="animation" style={{'--D': 1, '--S': 21}}>
+            Sign in to access your event management dashboard and track your team's progress.
+          </p>
+        </div>
+
+        {/* Signup Form */}
+        <div className="form-box Signup">
+          <h2 className="animation" style={{'--li': 17, '--S': 0}}>Sign Up</h2>
+          {error && isSignup && <div className="error-message animation" style={{'--li': 18, '--S': 1}}>{error}</div>}
+          <form onSubmit={handleSignupSubmit}>
+            <div className="input-box animation" style={{'--li': 18, '--S': 1}}>
+              <input
+                type="text"
+                value={signupData.username}
+                onChange={(e) => setSignupData({...signupData, username: e.target.value})}
+                onMouseEnter={handleMouseEnter}
+                onMouseLeave={handleMouseLeave}
+                required
+              />
+              <label>Username</label>
+              <i className="fa-solid fa-user"></i>
+            </div>
+
+            <div className="input-box animation" style={{'--li': 19, '--S': 1}}>
+              <input
+                type="email"
+                value={signupData.email}
+                onChange={(e) => setSignupData({...signupData, email: e.target.value})}
+                onMouseEnter={handleMouseEnter}
+                onMouseLeave={handleMouseLeave}
+                required
+              />
+              <label>Email</label>
+              <i className="fa-solid fa-envelope"></i>
+            </div>
+
+            <div className="input-box animation" style={{'--li': 20, '--S': 2}}>
+              <input
+                type="password"
+                value={signupData.password}
+                onChange={(e) => setSignupData({...signupData, password: e.target.value})}
+                onMouseEnter={handleMouseEnter}
+                onMouseLeave={handleMouseLeave}
+                required
+              />
+              <label>Password</label>
+              <i className="fa-solid fa-lock"></i>
+            </div>
+
+            <div className="input-box animation" style={{'--li': 21, '--S': 3}}>
+              <button
+                className="btn"
+                type="submit"
+                onMouseEnter={handleMouseEnter}
+                onMouseLeave={handleMouseLeave}
+              >
+                Sign Up
+              </button>
+            </div>
+
+            <div className="regi-link animation" style={{'--li': 22, '--S': 4}}>
+              <p>
+                Already have an account? {' '}
+                <a
+                  href="#"
+                  onClick={(e) => { e.preventDefault(); toggleForm(false); }}
+                  onMouseEnter={handleMouseEnter}
+                  onMouseLeave={handleMouseLeave}
+                >
+                  Sign In
+                </a>
+              </p>
+            </div>
+          </form>
+        </div>
+
+        {/* Signup Info Content */}
+        <div className="info-content Signup">
+          <h2 className="animation" style={{'--li': 17, '--S': 0}}>Join with Us!</h2>
+          <p className="animation" style={{'--li': 18, '--S': 1}}>
+            Create an account to start managing events and collaborating with your team.
+          </p>
         </div>
       </div>
     </div>

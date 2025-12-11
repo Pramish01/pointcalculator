@@ -4,12 +4,14 @@ A full-stack web application for managing events and teams with user authenticat
 
 ## Features
 
-- User Authentication (Sign up, Login, Logout)
+- User Authentication with Email Verification (Sign up, Login, Logout)
+- Admin Approval System (New users must be approved by admin)
 - Event Management (Create, Edit, Delete events with color customization)
 - Team Management (Create, Edit, Delete teams with player management)
 - User Profile with statistics
 - Event Dashboard (Upcoming and Ongoing events)
 - Search functionality for teams
+- Admin Dashboard for user management
 
 ## Tech Stack
 
@@ -63,10 +65,28 @@ JWT_SECRET=your_jwt_secret_key_change_this_in_production
 3. Go to Project Settings > API
    - Copy the "Project URL" to `SUPABASE_URL`
    - Copy the "service_role" key to `SUPABASE_SERVICE_ROLE_KEY` (under "Project API keys")
-4. Go to the SQL Editor and run the migration file:
-   - Open `backend/migrations/001_initial_schema.sql`
+4. Go to the SQL Editor and run the migration files in order:
+   - **First**, open `backend/migrations/001_initial_schema.sql`
    - Copy and paste the entire content into the SQL Editor
    - Click "Run" to create all tables
+   - **Then**, open `backend/migrations/003_integrate_supabase_auth.sql`
+   - Copy and paste the entire content into the SQL Editor
+   - Click "Run" to integrate with Supabase Auth
+5. **Configure Email Verification** (Authentication > Email Templates):
+   - Go to Authentication > Settings in your Supabase Dashboard
+   - Scroll to "Email Auth" section
+   - Ensure "Enable email confirmations" is **ON**
+   - Optionally customize the email templates under "Email Templates"
+   - Set your "Site URL" (e.g., `http://localhost:5173` for development)
+6. **Create the first admin user**:
+   - First, register through your app (you'll receive a verification email)
+   - Click the verification link in the email
+   - Then, in the SQL Editor, run:
+   ```sql
+   UPDATE users
+   SET is_admin = TRUE, status = 'approved'
+   WHERE email = 'your-email@example.com';
+   ```
 
 ### 3. Frontend Setup
 
@@ -79,9 +99,22 @@ npm install
 
 ### 1. Start the Backend Server
 
+**Option 1: Using the start script (Linux/Mac):**
+```bash
+cd backend
+./start.sh
+```
+
+**Option 2: Using npm (if .env is properly configured):**
 ```bash
 cd backend
 npm run dev
+```
+
+**Option 3: On Windows PowerShell (if .env isn't loading):**
+```powershell
+cd backend
+$env:PORT="5000"; $env:SUPABASE_URL="your_supabase_url"; $env:SUPABASE_SERVICE_ROLE_KEY="your_service_role_key"; $env:JWT_SECRET="your_jwt_secret"; npm run dev
 ```
 
 The backend server will run on `http://localhost:5000`
@@ -121,8 +154,9 @@ src/
 ## API Endpoints
 
 ### Authentication
-- `POST /api/auth/register` - Register new user
-- `POST /api/auth/login` - Login user
+- `POST /api/auth/register` - Register new user (Supabase sends verification email)
+- `POST /api/auth/resend-verification` - Resend verification email
+- `POST /api/auth/login` - Login user (requires verified email and admin approval)
 - `GET /api/auth/profile` - Get user profile (protected)
 
 ### Events
@@ -152,10 +186,15 @@ src/
 
 ## Features Walkthrough
 
-### Login/Signup
-- Users can create an account or login with existing credentials
-- Passwords are securely hashed using bcryptjs
-- JWT tokens are used for authentication
+### Registration & Login Flow
+1. **Sign Up**: Users create an account with name, email, and password
+2. **Email Verification**: Supabase Auth automatically sends verification email
+3. **Admin Approval**: After email verification, admin must approve the account
+4. **Login**: Users can login only after email verification and admin approval
+- Authentication powered by Supabase Auth (built-in email verification)
+- Passwords securely managed by Supabase Auth
+- JWT tokens are used for API authentication (30-day expiration)
+- Admin approval system adds an extra security layer
 
 ### Home Page
 - View all events (upcoming and ongoing)

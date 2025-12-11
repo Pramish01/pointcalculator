@@ -18,6 +18,12 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Log all incoming requests
+app.use((req, res, next) => {
+  console.log(`🌐 ${req.method} ${req.path}`, req.body);
+  next();
+});
+
 app.use('/api/auth', authRoutes);
 app.use('/api/events', eventRoutes);
 app.use('/api/teams', teamRoutes);

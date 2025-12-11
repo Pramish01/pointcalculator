@@ -9,9 +9,11 @@ const generateToken = (id) => {
 
 export const register = async (req, res) => {
   try {
+    console.log('📝 Registration attempt:', req.body);
     const { name, email, password } = req.body;
 
     // Check if user exists in our custom users table
+    console.log('🔍 Checking if user exists...');
     const { data: existingUser } = await supabase
       .from('users')
       .select('id')
@@ -19,10 +21,12 @@ export const register = async (req, res) => {
       .single();
 
     if (existingUser) {
+      console.log('❌ User already exists');
       return res.status(400).json({ message: 'User already exists' });
     }
 
     // Create user with Supabase Auth (handles email verification)
+    console.log('🔐 Creating Supabase Auth user...');
     const { data: authData, error: authError } = await supabase.auth.admin.createUser({
       email: email.toLowerCase(),
       password: password,
@@ -33,11 +37,15 @@ export const register = async (req, res) => {
     });
 
     if (authError) {
+      console.error('❌ Supabase Auth error:', authError);
       throw authError;
     }
 
+    console.log('✅ Supabase Auth user created:', authData.user.id);
+
     if (authData?.user) {
       // Create entry in our custom users table with admin approval status
+      console.log('💾 Creating user in custom table...');
       const { data: user, error: dbError } = await supabase
         .from('users')
         .insert([
@@ -53,11 +61,13 @@ export const register = async (req, res) => {
         .single();
 
       if (dbError) {
+        console.error('❌ Database error:', dbError);
         // If custom table insert fails, delete the auth user
         await supabase.auth.admin.deleteUser(authData.user.id);
         throw dbError;
       }
 
+      console.log('✅ Registration successful!', user.email);
       res.status(201).json({
         _id: user.id,
         name: user.name,
@@ -66,9 +76,11 @@ export const register = async (req, res) => {
         message: 'Registration successful! Please check your email to verify your account, then wait for admin approval.'
       });
     } else {
+      console.log('❌ Invalid user data');
       res.status(400).json({ message: 'Invalid user data' });
     }
   } catch (error) {
+    console.error('❌ Registration error:', error);
     res.status(500).json({ message: error.message });
   }
 };

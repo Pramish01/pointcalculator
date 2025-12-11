@@ -69,14 +69,22 @@ JWT_SECRET=your_jwt_secret_key_change_this_in_production
    - **First**, open `backend/migrations/001_initial_schema.sql`
    - Copy and paste the entire content into the SQL Editor
    - Click "Run" to create all tables
-   - **Then**, open `backend/migrations/002_add_email_verification.sql`
+   - **Then**, open `backend/migrations/003_integrate_supabase_auth.sql`
    - Copy and paste the entire content into the SQL Editor
-   - Click "Run" to add email verification columns
-5. **Create the first admin user** (in SQL Editor):
+   - Click "Run" to integrate with Supabase Auth
+5. **Configure Email Verification** (Authentication > Email Templates):
+   - Go to Authentication > Settings in your Supabase Dashboard
+   - Scroll to "Email Auth" section
+   - Ensure "Enable email confirmations" is **ON**
+   - Optionally customize the email templates under "Email Templates"
+   - Set your "Site URL" (e.g., `http://localhost:5173` for development)
+6. **Create the first admin user**:
+   - First, register through your app (you'll receive a verification email)
+   - Click the verification link in the email
+   - Then, in the SQL Editor, run:
    ```sql
-   -- After your first user registers and verifies their email, make them admin:
    UPDATE users
-   SET is_admin = TRUE, status = 'approved', email_verified = TRUE
+   SET is_admin = TRUE, status = 'approved'
    WHERE email = 'your-email@example.com';
    ```
 
@@ -146,8 +154,7 @@ src/
 ## API Endpoints
 
 ### Authentication
-- `POST /api/auth/register` - Register new user (returns verification link)
-- `GET /api/auth/verify-email/:token` - Verify email address
+- `POST /api/auth/register` - Register new user (Supabase sends verification email)
 - `POST /api/auth/resend-verification` - Resend verification email
 - `POST /api/auth/login` - Login user (requires verified email and admin approval)
 - `GET /api/auth/profile` - Get user profile (protected)
@@ -181,12 +188,13 @@ src/
 
 ### Registration & Login Flow
 1. **Sign Up**: Users create an account with name, email, and password
-2. **Email Verification**: User receives a verification link (valid for 24 hours)
+2. **Email Verification**: Supabase Auth automatically sends verification email
 3. **Admin Approval**: After email verification, admin must approve the account
 4. **Login**: Users can login only after email verification and admin approval
-- Passwords are securely hashed using bcryptjs (10 salt rounds)
-- JWT tokens are used for authentication (30-day expiration)
-- Email verification tokens use crypto-generated random bytes for security
+- Authentication powered by Supabase Auth (built-in email verification)
+- Passwords securely managed by Supabase Auth
+- JWT tokens are used for API authentication (30-day expiration)
+- Admin approval system adds an extra security layer
 
 ### Home Page
 - View all events (upcoming and ongoing)

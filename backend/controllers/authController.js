@@ -1,6 +1,4 @@
 import jwt from 'jsonwebtoken';
-import bcrypt from 'bcryptjs';
-import crypto from 'crypto';
 import { supabase } from '../config/db.js';
 
 const generateToken = (id) => {
@@ -9,15 +7,11 @@ const generateToken = (id) => {
   });
 };
 
-const generateVerificationToken = () => {
-  return crypto.randomBytes(32).toString('hex');
-};
-
 export const register = async (req, res) => {
   try {
     const { name, email, password } = req.body;
 
-    // Check if user exists
+    // Check if user exists in our custom users table
     const { data: existingUser } = await supabase
       .from('users')
       .select('id')
@@ -28,48 +22,48 @@ export const register = async (req, res) => {
       return res.status(400).json({ message: 'User already exists' });
     }
 
-    // Hash password
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
+    // Create user with Supabase Auth (handles email verification)
+    const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+      email: email.toLowerCase(),
+      password: password,
+      email_confirm: false, // User must verify email
+      user_metadata: {
+        name: name
+      }
+    });
 
-    // Generate verification token
-    const verificationToken = generateVerificationToken();
-    const tokenExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
-
-    // Create user
-    const { data: user, error } = await supabase
-      .from('users')
-      .insert([
-        {
-          name,
-          email: email.toLowerCase(),
-          password: hashedPassword,
-          status: 'pending',
-          email_verified: false,
-          verification_token: verificationToken,
-          verification_token_expires: tokenExpires.toISOString()
-        }
-      ])
-      .select()
-      .single();
-
-    if (error) {
-      throw error;
+    if (authError) {
+      throw authError;
     }
 
-    if (user) {
-      // In production, send verification email here
-      // For now, return the verification link
-      const verificationLink = `http://localhost:5000/api/auth/verify-email/${verificationToken}`;
+    if (authData?.user) {
+      // Create entry in our custom users table with admin approval status
+      const { data: user, error: dbError } = await supabase
+        .from('users')
+        .insert([
+          {
+            auth_user_id: authData.user.id,
+            name,
+            email: email.toLowerCase(),
+            status: 'pending', // Admin approval required
+            is_admin: false
+          }
+        ])
+        .select()
+        .single();
+
+      if (dbError) {
+        // If custom table insert fails, delete the auth user
+        await supabase.auth.admin.deleteUser(authData.user.id);
+        throw dbError;
+      }
 
       res.status(201).json({
         _id: user.id,
         name: user.name,
         email: user.email,
         status: user.status,
-        emailVerified: user.email_verified,
-        message: 'Registration successful. Please verify your email and wait for admin approval.',
-        verificationLink: verificationLink // Remove this in production
+        message: 'Registration successful! Please check your email to verify your account, then wait for admin approval.'
       });
     } else {
       res.status(400).json({ message: 'Invalid user data' });
@@ -79,42 +73,60 @@ export const register = async (req, res) => {
   }
 };
 
-export const verifyEmail = async (req, res) => {
+export const login = async (req, res) => {
   try {
-    const { token } = req.params;
+    const { email, password } = req.body;
 
-    // Find user with this verification token
-    const { data: user, error } = await supabase
+    // Sign in with Supabase Auth
+    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+      email: email.toLowerCase(),
+      password: password
+    });
+
+    if (authError) {
+      return res.status(401).json({ message: 'Invalid email or password' });
+    }
+
+    // Check if email is verified
+    if (!authData.user.email_confirmed_at) {
+      return res.status(403).json({
+        message: 'Please verify your email address before logging in.',
+        requiresEmailVerification: true
+      });
+    }
+
+    // Get user from our custom users table
+    const { data: user, error: dbError } = await supabase
       .from('users')
       .select('*')
-      .eq('verification_token', token)
+      .eq('auth_user_id', authData.user.id)
       .single();
 
-    if (error || !user) {
-      return res.status(400).json({ message: 'Invalid or expired verification token' });
+    if (dbError || !user) {
+      return res.status(404).json({ message: 'User profile not found' });
     }
 
-    // Check if token has expired
-    if (new Date(user.verification_token_expires) < new Date()) {
-      return res.status(400).json({ message: 'Verification token has expired. Please request a new one.' });
+    // Check admin approval status
+    if (user.status === 'pending') {
+      return res.status(403).json({
+        message: 'Your account is pending admin approval. Please wait for approval.'
+      });
     }
 
-    // Verify the email
-    const { error: updateError } = await supabase
-      .from('users')
-      .update({
-        email_verified: true,
-        verification_token: null,
-        verification_token_expires: null
-      })
-      .eq('id', user.id);
-
-    if (updateError) {
-      throw updateError;
+    if (user.status === 'rejected') {
+      return res.status(403).json({
+        message: 'Your account has been rejected. Please contact support.'
+      });
     }
 
     res.json({
-      message: 'Email verified successfully! Your account is now pending admin approval.'
+      _id: user.id,
+      name: user.name,
+      email: user.email,
+      profilePicture: user.profile_picture,
+      isAdmin: user.is_admin,
+      emailVerified: true,
+      token: generateToken(user.id)
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -125,10 +137,10 @@ export const resendVerification = async (req, res) => {
   try {
     const { email } = req.body;
 
-    // Find user
+    // Find user in our custom table
     const { data: user, error } = await supabase
       .from('users')
-      .select('*')
+      .select('auth_user_id')
       .eq('email', email.toLowerCase())
       .single();
 
@@ -136,89 +148,19 @@ export const resendVerification = async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    if (user.email_verified) {
-      return res.status(400).json({ message: 'Email already verified' });
+    // Resend verification email using Supabase Auth
+    const { error: resendError } = await supabase.auth.admin.generateLink({
+      type: 'signup',
+      email: email.toLowerCase()
+    });
+
+    if (resendError) {
+      throw resendError;
     }
-
-    // Generate new verification token
-    const verificationToken = generateVerificationToken();
-    const tokenExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
-
-    const { error: updateError } = await supabase
-      .from('users')
-      .update({
-        verification_token: verificationToken,
-        verification_token_expires: tokenExpires.toISOString()
-      })
-      .eq('id', user.id);
-
-    if (updateError) {
-      throw updateError;
-    }
-
-    // In production, send verification email here
-    const verificationLink = `http://localhost:5000/api/auth/verify-email/${verificationToken}`;
 
     res.json({
-      message: 'Verification email sent successfully',
-      verificationLink: verificationLink // Remove this in production
+      message: 'Verification email sent successfully. Please check your inbox.'
     });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
-export const login = async (req, res) => {
-  try {
-    const { email, password } = req.body;
-
-    // Find user by email
-    const { data: user, error } = await supabase
-      .from('users')
-      .select('*')
-      .eq('email', email.toLowerCase())
-      .single();
-
-    if (error || !user) {
-      return res.status(401).json({ message: 'Invalid email or password' });
-    }
-
-    // Check password
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-
-    if (isPasswordValid) {
-      // Check email verification
-      if (!user.email_verified) {
-        return res.status(403).json({
-          message: 'Please verify your email address before logging in.',
-          requiresEmailVerification: true
-        });
-      }
-
-      if (user.status === 'pending') {
-        return res.status(403).json({
-          message: 'Your account is pending admin approval. Please wait for approval.'
-        });
-      }
-
-      if (user.status === 'rejected') {
-        return res.status(403).json({
-          message: 'Your account has been rejected. Please contact support.'
-        });
-      }
-
-      res.json({
-        _id: user.id,
-        name: user.name,
-        email: user.email,
-        profilePicture: user.profile_picture,
-        isAdmin: user.is_admin,
-        emailVerified: user.email_verified,
-        token: generateToken(user.id)
-      });
-    } else {
-      res.status(401).json({ message: 'Invalid email or password' });
-    }
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -228,7 +170,7 @@ export const getProfile = async (req, res) => {
   try {
     const { data: user, error } = await supabase
       .from('users')
-      .select('id, name, email, profile_picture, email_verified')
+      .select('id, name, email, profile_picture')
       .eq('id', req.user.id)
       .single();
 
@@ -241,7 +183,7 @@ export const getProfile = async (req, res) => {
       name: user.name,
       email: user.email,
       profilePicture: user.profile_picture,
-      emailVerified: user.email_verified
+      emailVerified: true
     });
   } catch (error) {
     res.status(500).json({ message: error.message });

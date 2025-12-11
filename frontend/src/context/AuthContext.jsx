@@ -44,8 +44,13 @@ export const AuthProvider = ({ children }) => {
         email,
         password
       });
-      localStorage.setItem('userInfo', JSON.stringify(data));
-      setUser(data);
+
+      // Only save to localStorage and set user if account is approved
+      if (data.status !== 'pending') {
+        localStorage.setItem('userInfo', JSON.stringify(data));
+        setUser(data);
+      }
+
       return data;
     } catch (error) {
       throw error;

@@ -28,7 +28,8 @@ export const register = async (req, res) => {
         _id: user._id,
         name: user.name,
         email: user.email,
-        token: generateToken(user._id)
+        status: user.status,
+        message: 'Registration successful. Your account is pending admin approval.'
       });
     } else {
       res.status(400).json({ message: 'Invalid user data' });
@@ -45,11 +46,24 @@ export const login = async (req, res) => {
     const user = await User.findOne({ email });
 
     if (user && (await user.matchPassword(password))) {
+      if (user.status === 'pending') {
+        return res.status(403).json({
+          message: 'Your account is pending admin approval. Please wait for approval.'
+        });
+      }
+
+      if (user.status === 'rejected') {
+        return res.status(403).json({
+          message: 'Your account has been rejected. Please contact support.'
+        });
+      }
+
       res.json({
         _id: user._id,
         name: user.name,
         email: user.email,
         profilePicture: user.profilePicture,
+        isAdmin: user.isAdmin,
         token: generateToken(user._id)
       });
     } else {

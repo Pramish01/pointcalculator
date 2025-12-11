@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import User from '../models/User.js';
+import { supabase } from '../config/db.js';
 
 const protect = async (req, res, next) => {
   let token;
@@ -8,17 +8,33 @@ const protect = async (req, res, next) => {
     try {
       token = req.headers.authorization.split(' ')[1];
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      req.user = await User.findById(decoded.id).select('-password');
 
-      if (!req.user) {
+      // Get user from Supabase
+      const { data: user, error } = await supabase
+        .from('users')
+        .select('id, name, email, profile_picture, status, is_admin')
+        .eq('id', decoded.id)
+        .single();
+
+      if (error || !user) {
         return res.status(401).json({ message: 'User not found' });
       }
 
-      if (req.user.status !== 'approved') {
+      if (user.status !== 'approved') {
         return res.status(403).json({
           message: 'Your account is not approved. Please wait for admin approval.'
         });
       }
+
+      // Map to match controller expectations
+      req.user = {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        profilePicture: user.profile_picture,
+        status: user.status,
+        isAdmin: user.is_admin
+      };
 
       next();
     } catch (error) {

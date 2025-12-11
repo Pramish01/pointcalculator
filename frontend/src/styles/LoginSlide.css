@@ -380,3 +380,15 @@
     font-size: 14px;
     color: #ff6b6b;
 }
+
+/* Success message styling */
+.success-message {
+    background: rgba(0, 255, 0, 0.2);
+    border: 1px solid rgba(0, 255, 0, 0.5);
+    padding: 10px;
+    border-radius: 5px;
+    text-align: center;
+    margin: 15px 0;
+    font-size: 14px;
+    color: #6bffb3;
+}

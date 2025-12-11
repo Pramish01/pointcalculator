@@ -8,6 +8,7 @@ const Login = () => {
   const [loginData, setLoginData] = useState({ username: '', password: '' });
   const [signupData, setSignupData] = useState({ username: '', email: '', password: '' });
   const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
   const navigate = useNavigate();
   const { login, register } = useAuth();
   const containerRef = useRef(null);
@@ -64,10 +65,17 @@ const Login = () => {
   const handleSignupSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setSuccessMessage('');
 
     try {
-      await register(signupData.username, signupData.email, signupData.password);
-      navigate('/');
+      const response = await register(signupData.username, signupData.email, signupData.password);
+      if (response?.status === 'pending') {
+        setSuccessMessage('Registration successful! Your account is pending admin approval. You will be able to login once approved.');
+        setIsSignup(false);
+        setSignupData({ username: '', email: '', password: '' });
+      } else {
+        navigate('/');
+      }
     } catch (err) {
       setError(err.response?.data?.message || 'Signup failed');
     }
@@ -76,6 +84,7 @@ const Login = () => {
   const toggleForm = (signup) => {
     setIsSignup(signup);
     setError('');
+    setSuccessMessage('');
   };
 
   const handleMouseEnter = (e) => {
@@ -113,6 +122,7 @@ const Login = () => {
         <div className="form-box Login">
           <h2 className="animation" style={{'--D': 0, '--S': 21}}>Login</h2>
           {error && !isSignup && <div className="error-message animation" style={{'--D': 1, '--S': 22}}>{error}</div>}
+          {successMessage && !isSignup && <div className="success-message animation" style={{'--D': 1, '--S': 22}}>{successMessage}</div>}
           <form onSubmit={handleLoginSubmit}>
             <div className="input-box animation" style={{'--D': 1, '--S': 22}}>
               <input

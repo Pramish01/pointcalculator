@@ -22,8 +22,16 @@ const Signup = () => {
     }
 
     try {
-      await register(name, email, password);
-      navigate('/');
+      const response = await register(name, email, password);
+      if (response?.status === 'pending') {
+        navigate('/login', {
+          state: {
+            message: 'Registration successful! Your account is pending admin approval. You will be able to login once approved.'
+          }
+        });
+      } else {
+        navigate('/');
+      }
     } catch (err) {
       setError(err.response?.data?.message || 'An error occurred');
     }

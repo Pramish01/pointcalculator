@@ -21,14 +21,14 @@ A full-stack web application for managing events and teams with user authenticat
 
 ### Backend
 - Node.js with Express
-- MongoDB with Mongoose
+- Supabase (PostgreSQL)
 - JWT for authentication
 - bcryptjs for password hashing
 
 ## Prerequisites
 
 - Node.js (v14 or higher)
-- MongoDB (local or cloud instance)
+- Supabase account (free tier available)
 - npm or yarn
 
 ## Installation
@@ -51,9 +51,22 @@ Create a `.env` file in the backend directory with the following variables:
 
 ```env
 PORT=5000
-MONGODB_URI=mongodb://localhost:27017/eventmanager
+SUPABASE_URL=your_supabase_project_url
+SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
 JWT_SECRET=your_jwt_secret_key_change_this_in_production
 ```
+
+**Setting up Supabase:**
+
+1. Go to [supabase.com](https://supabase.com) and create a free account
+2. Create a new project
+3. Go to Project Settings > API
+   - Copy the "Project URL" to `SUPABASE_URL`
+   - Copy the "service_role" key to `SUPABASE_SERVICE_ROLE_KEY` (under "Project API keys")
+4. Go to the SQL Editor and run the migration file:
+   - Open `backend/migrations/001_initial_schema.sql`
+   - Copy and paste the entire content into the SQL Editor
+   - Click "Run" to create all tables
 
 ### 3. Frontend Setup
 
@@ -64,15 +77,7 @@ npm install
 
 ## Running the Application
 
-### 1. Start MongoDB
-
-Make sure MongoDB is running on your system. If using local MongoDB:
-
-```bash
-mongod
-```
-
-### 2. Start the Backend Server
+### 1. Start the Backend Server
 
 ```bash
 cd backend
@@ -81,7 +86,7 @@ npm run dev
 
 The backend server will run on `http://localhost:5000`
 
-### 3. Start the Frontend Development Server
+### 2. Start the Frontend Development Server
 
 In a new terminal:
 
@@ -106,10 +111,10 @@ src/
 
 ### Backend (`/backend`)
 ```
-├── config/          # Database configuration
+├── config/          # Supabase configuration
 ├── controllers/     # Route controllers
 ├── middleware/      # Custom middleware (auth)
-├── models/          # Mongoose models
+├── migrations/      # Database SQL migrations
 └── routes/          # API routes
 ```
 
@@ -137,6 +142,13 @@ src/
 
 ### Stats
 - `GET /api/stats` - Get user statistics (protected)
+
+### Admin (Admin Only)
+- `GET /api/admin/users` - Get all users
+- `GET /api/admin/users/pending` - Get pending approval users
+- `PUT /api/admin/users/:id/approve` - Approve user
+- `PUT /api/admin/users/:id/reject` - Reject user
+- `DELETE /api/admin/users/:id` - Delete user
 
 ## Features Walkthrough
 

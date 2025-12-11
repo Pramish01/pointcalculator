@@ -19,6 +19,15 @@ const userSchema = new mongoose.Schema({
   profilePicture: {
     type: String,
     default: ''
+  },
+  status: {
+    type: String,
+    enum: ['pending', 'approved', 'rejected'],
+    default: 'pending'
+  },
+  isAdmin: {
+    type: Boolean,
+    default: false
   }
 }, {
   timestamps: true

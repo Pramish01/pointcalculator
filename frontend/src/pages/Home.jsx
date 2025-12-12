@@ -58,12 +58,31 @@ const Home = () => {
   const upcomingEvents = events.filter(e => e.status === 'upcoming');
   const ongoingEvents = events.filter(e => e.status === 'ongoing');
 
+  if (loading) {
+    return (
+      <div className="home-container">
+        <div className="loading-container">
+          <div className="loading-spinner"></div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="home-container">
+      {/* Background Animation */}
+      <div className="bg-shapes">
+        <div className="shape shape-1"></div>
+        <div className="shape shape-2"></div>
+        <div className="shape shape-3"></div>
+        <div className="shape shape-4"></div>
+      </div>
+
+      {/* Header */}
       <header className="home-header">
         <div className="header-left">
-          <div className="logo">Logo</div>
-          <h2>{user?.name}</h2>
+          <div className="logo">E</div>
+          <h2>{user?.name || 'EventHub'}</h2>
         </div>
         <div className="header-right">
           <span>User ID: {user?._id?.substring(0, 8)}...</span>
@@ -71,52 +90,60 @@ const Home = () => {
         </div>
       </header>
 
-      <div className="home-actions">
-        <Link to="/teams" className="btn-action">Team Create</Link>
-        <button onClick={handleCreateEvent} className="btn-action">New Event</button>
-      </div>
-
-      <div className="event-dashboard">
-        <h3>Event Dashboard</h3>
-        <p>Access to your Event messages</p>
-
-        <div className="event-section">
-          <h4>Upcoming Events</h4>
-          <div className="event-list">
-            {upcomingEvents.length === 0 ? (
-              <p>No upcoming events</p>
-            ) : (
-              upcomingEvents.map(event => (
-                <EventCard
-                  key={event._id}
-                  event={event}
-                  onEdit={handleEditEvent}
-                  onDelete={handleDeleteEvent}
-                />
-              ))
-            )}
-          </div>
+      {/* Main Content */}
+      <div className="main-content">
+        {/* Action Buttons */}
+        <div className="home-actions">
+          <Link to="/teams" className="btn-action">Team Create</Link>
+          <button onClick={handleCreateEvent} className="btn-action">New Event</button>
         </div>
 
-        <div className="event-section">
-          <h4>Ongoing Events</h4>
-          <div className="event-list">
-            {ongoingEvents.length === 0 ? (
-              <p>No ongoing events</p>
-            ) : (
-              ongoingEvents.map(event => (
-                <EventCard
-                  key={event._id}
-                  event={event}
-                  onEdit={handleEditEvent}
-                  onDelete={handleDeleteEvent}
-                />
-              ))
-            )}
+        {/* Event Dashboard */}
+        <div className="event-dashboard">
+          <h3>Event Dashboard</h3>
+          <p>Access your event messages and manage your upcoming activities</p>
+
+          {/* Upcoming Events */}
+          <div className="event-section">
+            <h4>Upcoming Events</h4>
+            <div className="event-list">
+              {upcomingEvents.length === 0 ? (
+                <p>No upcoming events</p>
+              ) : (
+                upcomingEvents.map(event => (
+                  <EventCard
+                    key={event._id}
+                    event={event}
+                    onEdit={handleEditEvent}
+                    onDelete={handleDeleteEvent}
+                  />
+                ))
+              )}
+            </div>
+          </div>
+
+          {/* Ongoing Events */}
+          <div className="event-section">
+            <h4>Ongoing Events</h4>
+            <div className="event-list">
+              {ongoingEvents.length === 0 ? (
+                <p>No ongoing events</p>
+              ) : (
+                ongoingEvents.map(event => (
+                  <EventCard
+                    key={event._id}
+                    event={event}
+                    onEdit={handleEditEvent}
+                    onDelete={handleDeleteEvent}
+                  />
+                ))
+              )}
+            </div>
           </div>
         </div>
       </div>
 
+      {/* Event Form Modal */}
       {showEventForm && (
         <EventForm
           event={editingEvent}

@@ -1,19 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@400;500;700&display=swap');
 
-:root {
-    --primary: #FF6B35;
-    --primary-dark: #E85D2E;
-    --secondary: #004E89;
-    --accent: #FFD23F;
-    --bg-dark: #0A0E27;
-    --bg-medium: #1A1F3A;
-    --bg-light: #2A2F4A;
-    --text-primary: #FFFFFF;
-    --text-secondary: #A8B2D1;
-    --gradient-1: linear-gradient(135deg, #FF6B35 0%, #F7931E 100%);
-    --gradient-2: linear-gradient(135deg, #004E89 0%, #1C77C3 100%);
-}
-
 .home-container {
     min-height: 100vh;
     background: var(--bg-dark);
@@ -22,7 +8,7 @@
     position: relative;
 }
 
-/* Background Animation */
+/* Animated Grid Background */
 .bg-shapes {
     position: fixed;
     top: 0;
@@ -32,48 +18,98 @@
     z-index: 0;
     overflow: hidden;
     pointer-events: none;
+    background:
+        linear-gradient(90deg, rgba(0, 245, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(rgba(0, 245, 255, 0.03) 1px, transparent 1px);
+    background-size: 50px 50px;
+    animation: gridMove 20s linear infinite;
 }
 
+@keyframes gridMove {
+    0% { transform: translate(0, 0); }
+    100% { transform: translate(50px, 50px); }
+}
+
+/* Neon Orbs */
 .shape {
     position: absolute;
-    opacity: 0.05;
-    animation: float 20s infinite ease-in-out;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.15;
+    animation: float 15s infinite ease-in-out;
 }
 
 .shape-1 {
     top: 10%;
-    left: 5%;
-    width: 300px;
-    height: 300px;
-    background: var(--gradient-1);
-    border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
+    left: 10%;
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, var(--primary) 0%, transparent 70%);
     animation-delay: 0s;
 }
 
 .shape-2 {
-    top: 60%;
-    right: 10%;
-    width: 400px;
-    height: 400px;
-    background: var(--gradient-2);
-    border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+    top: 50%;
+    right: 5%;
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, var(--secondary) 0%, transparent 70%);
     animation-delay: 5s;
 }
 
 .shape-3 {
-    bottom: 10%;
-    left: 40%;
-    width: 250px;
-    height: 250px;
-    background: linear-gradient(135deg, var(--accent) 0%, #FFB84D 100%);
-    border-radius: 50% 50% 30% 70% / 50% 60% 40% 50%;
+    bottom: 5%;
+    left: 30%;
+    width: 350px;
+    height: 350px;
+    background: radial-gradient(circle, var(--purple) 0%, transparent 70%);
     animation-delay: 10s;
 }
 
+.shape-4 {
+    top: 30%;
+    right: 40%;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, var(--accent) 0%, transparent 70%);
+    animation-delay: 7s;
+}
+
 @keyframes float {
-    0%, 100% { transform: translate(0, 0) rotate(0deg); }
-    33% { transform: translate(30px, -30px) rotate(120deg); }
-    66% { transform: translate(-20px, 20px) rotate(240deg); }
+    0%, 100% {
+        transform: translate(0, 0) scale(1);
+    }
+    25% {
+        transform: translate(50px, -50px) scale(1.1);
+    }
+    50% {
+        transform: translate(-30px, 30px) scale(0.9);
+    }
+    75% {
+        transform: translate(40px, 40px) scale(1.05);
+    }
+}
+
+/* Scanline Effect */
+.bg-shapes::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        transparent 0%,
+        rgba(0, 245, 255, 0.03) 50%,
+        transparent 100%
+    );
+    background-size: 100% 4px;
+    animation: scanline 8s linear infinite;
+}
+
+@keyframes scanline {
+    0% { transform: translateY(-100%); }
+    100% { transform: translateY(100%); }
 }
 
 /* Header */
@@ -85,6 +121,9 @@
     justify-content: space-between;
     align-items: center;
     animation: slideDown 0.6s ease-out;
+    background: rgba(13, 2, 33, 0.6);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(0, 245, 255, 0.1);
 }
 
 @keyframes slideDown {
@@ -115,13 +154,33 @@
     font-family: 'Syne', sans-serif;
     font-weight: 800;
     font-size: 1.5rem;
-    box-shadow: 0 4px 20px rgba(255, 107, 53, 0.3);
-    transition: transform 0.3s ease;
+    box-shadow:
+        0 0 20px rgba(0, 245, 255, 0.5),
+        0 0 40px rgba(0, 245, 255, 0.3),
+        inset 0 0 20px rgba(255, 255, 255, 0.2);
+    transition: all 0.3s ease;
+    animation: logoPulse 3s ease-in-out infinite;
     color: white;
 }
 
+@keyframes logoPulse {
+    0%, 100% {
+        box-shadow:
+            0 0 20px rgba(0, 245, 255, 0.5),
+            0 0 40px rgba(0, 245, 255, 0.3);
+    }
+    50% {
+        box-shadow:
+            0 0 30px rgba(0, 245, 255, 0.8),
+            0 0 60px rgba(0, 245, 255, 0.5);
+    }
+}
+
 .logo:hover {
-    transform: rotate(-5deg) scale(1.05);
+    transform: rotate(-5deg) scale(1.1);
+    box-shadow:
+        0 0 30px rgba(0, 245, 255, 0.8),
+        0 0 60px rgba(0, 245, 255, 0.5);
 }
 
 .header-left h2 {
@@ -129,7 +188,10 @@
     font-weight: 700;
     font-size: 1.8rem;
     letter-spacing: -0.5px;
-    color: var(--text-primary);
+    background: var(--gradient-1);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
 .header-right {
@@ -141,24 +203,46 @@
 .header-right span {
     color: var(--text-secondary);
     font-size: 0.9rem;
+    padding: 0.5rem 1rem;
+    background: rgba(0, 245, 255, 0.05);
+    border-radius: 8px;
+    border: 1px solid rgba(0, 245, 255, 0.2);
 }
 
 .btn-profile {
     padding: 0.6rem 1.5rem;
     background: var(--bg-light);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 2px solid var(--primary);
     border-radius: 8px;
     color: var(--text-primary);
     text-decoration: none;
     font-weight: 500;
     transition: all 0.3s ease;
     font-family: 'DM Sans', sans-serif;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 0 20px rgba(0, 245, 255, 0.2);
+}
+
+.btn-profile::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(0, 245, 255, 0.3), transparent);
+    transition: left 0.5s ease;
+}
+
+.btn-profile:hover::before {
+    left: 100%;
 }
 
 .btn-profile:hover {
-    background: var(--bg-medium);
-    border-color: var(--primary);
+    background: rgba(0, 245, 255, 0.1);
     transform: translateY(-2px);
+    box-shadow: 0 0 30px rgba(0, 245, 255, 0.4);
 }
 
 /* Main Content Container */
@@ -167,7 +251,7 @@
     z-index: 10;
     max-width: 1400px;
     margin: 0 auto;
-    padding: 1rem 5%;
+    padding: 3rem 5%;
 }
 
 /* Action Buttons */
@@ -192,7 +276,7 @@
 .btn-action {
     padding: 0.7rem 1.5rem;
     background: transparent;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(0, 245, 255, 0.3);
     border-radius: 8px;
     color: var(--text-secondary);
     font-family: 'DM Sans', sans-serif;
@@ -201,24 +285,63 @@
     transition: all 0.3s ease;
     text-decoration: none;
     display: inline-block;
+    position: relative;
+    overflow: hidden;
 }
 
-.btn-action:hover,
-.btn-action.active {
-    background: var(--gradient-1);
-    border-color: transparent;
-    color: white;
-    transform: translateY(-2px);
+.btn-action::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: radial-gradient(circle, rgba(0, 245, 255, 0.3) 0%, transparent 70%);
+    transform: translate(-50%, -50%);
+    transition: width 0.5s ease, height 0.5s ease;
+}
+
+.btn-action:hover::before {
+    width: 300px;
+    height: 300px;
+}
+
+.btn-action:hover {
+    border-color: var(--primary);
+    color: var(--text-primary);
+    box-shadow: 0 0 20px rgba(0, 245, 255, 0.2);
 }
 
 /* Dashboard Section */
 .event-dashboard {
-    background: var(--bg-medium);
+    background: rgba(26, 11, 61, 0.4);
+    backdrop-filter: blur(20px);
     border-radius: 20px;
     padding: 3rem;
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    border: 2px solid rgba(0, 245, 255, 0.2);
+    box-shadow:
+        0 8px 32px rgba(0, 0, 0, 0.4),
+        inset 0 1px 1px rgba(255, 255, 255, 0.1),
+        0 0 40px rgba(0, 245, 255, 0.1);
     animation: fadeInUp 0.8s ease-out 0.4s both;
+    position: relative;
+    overflow: hidden;
+}
+
+.event-dashboard::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(0, 245, 255, 0.1), transparent);
+    animation: shimmer 3s infinite;
+}
+
+@keyframes shimmer {
+    0% { left: -100%; }
+    100% { left: 200%; }
 }
 
 .dashboard-header {
@@ -226,13 +349,18 @@
     justify-content: space-between;
     align-items: center;
     margin-bottom: 2rem;
+    position: relative;
+    z-index: 1;
 }
 
 .event-dashboard h3 {
     font-family: 'Syne', sans-serif;
     font-size: 2rem;
     font-weight: 700;
-    color: var(--text-primary);
+    background: var(--gradient-1);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
     margin-bottom: 0.5rem;
 }
 
@@ -240,15 +368,20 @@
     color: var(--text-secondary);
     font-size: 0.95rem;
     margin-bottom: 2rem;
-    padding: 1rem;
-    background: rgba(255, 255, 255, 0.03);
+    padding: 1rem 1.5rem;
+    background: rgba(0, 245, 255, 0.05);
     border-radius: 8px;
     border-left: 3px solid var(--accent);
+    position: relative;
+    z-index: 1;
+    backdrop-filter: blur(10px);
 }
 
 /* Event Section */
 .event-section {
     margin-bottom: 3rem;
+    position: relative;
+    z-index: 1;
 }
 
 .event-section h4 {
@@ -270,9 +403,9 @@
     color: var(--text-secondary);
     text-align: center;
     padding: 2rem;
-    background: rgba(255, 255, 255, 0.03);
+    background: rgba(0, 245, 255, 0.03);
     border-radius: 12px;
-    border: 1px dashed rgba(255, 255, 255, 0.1);
+    border: 1px dashed rgba(0, 245, 255, 0.2);
 }
 
 /* Loading State */
@@ -286,10 +419,11 @@
 .loading-spinner {
     width: 50px;
     height: 50px;
-    border: 4px solid rgba(255, 255, 255, 0.1);
+    border: 4px solid rgba(0, 245, 255, 0.1);
     border-top-color: var(--primary);
     border-radius: 50%;
     animation: spin 1s linear infinite;
+    box-shadow: 0 0 20px rgba(0, 245, 255, 0.5);
 }
 
 @keyframes spin {

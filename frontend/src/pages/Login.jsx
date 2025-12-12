@@ -5,7 +5,7 @@ import '../styles/LoginSlide.css';
 
 const Login = () => {
   const [isSignup, setIsSignup] = useState(false);
-  const [loginData, setLoginData] = useState({ username: '', password: '' });
+  const [loginData, setLoginData] = useState({ email: '', password: '' });
   const [signupData, setSignupData] = useState({ username: '', email: '', password: '' });
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
@@ -55,7 +55,7 @@ const Login = () => {
     setError('');
 
     try {
-      await login(loginData.username, loginData.password);
+      await login(loginData.email, loginData.password);
       navigate('/');
     } catch (err) {
       setError(err.response?.data?.message || 'Login failed');
@@ -126,15 +126,15 @@ const Login = () => {
           <form onSubmit={handleLoginSubmit}>
             <div className="input-box animation" style={{'--D': 1, '--S': 22}}>
               <input
-                type="text"
-                value={loginData.username}
-                onChange={(e) => setLoginData({...loginData, username: e.target.value})}
+                type="email"
+                value={loginData.email}
+                onChange={(e) => setLoginData({...loginData, email: e.target.value})}
                 onMouseEnter={handleMouseEnter}
                 onMouseLeave={handleMouseLeave}
                 required
               />
-              <label>Username</label>
-              <i className="fa-solid fa-user"></i>
+              <label>Email</label>
+              <i className="fa-solid fa-envelope"></i>
             </div>
 
             <div className="input-box animation" style={{'--D': 2, '--S': 23}}>

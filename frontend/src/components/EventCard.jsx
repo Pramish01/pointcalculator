@@ -1,8 +1,14 @@
 import '../styles/EventCard.css';
 
 const EventCard = ({ event, onEdit, onDelete }) => {
+  const getStatusBadge = (status) => {
+    const statusText = status ? status.charAt(0).toUpperCase() + status.slice(1) : 'Pending';
+    return <span className="event-status">{statusText}</span>;
+  };
+
   return (
-    <div className="event-card" style={{ borderColor: event.primaryColor }}>
+    <div className="event-card">
+      {getStatusBadge(event.status)}
       {event.logoUrl && (
         <img src={event.logoUrl} alt={event.name} className="event-logo" />
       )}
